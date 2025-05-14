@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: "0 0 * * *"  # Runs daily at midnight
   workflow_dispatch:
+    inputs:
+      YOUR_VARIABLE:
+        description: 'Provide a value for YOUR_VARIABLE'
+        required: true
+        default: 'default_value'  # Optional default value
 
 jobs:
   generate:
@@ -14,13 +19,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      # Check input before split (inserted here)
+      # Set the variable (make sure YOUR_VARIABLE is passed as input)
+      - name: Set YOUR_VARIABLE
+        run: |
+          export YOUR_VARIABLE="${{ github.event.inputs.YOUR_VARIABLE }}"
+          echo "YOUR_VARIABLE is set to $YOUR_VARIABLE"
+      
+      # Check if the variable is set before splitting
       - name: Check input before split
         run: |
           if [ -z "$YOUR_VARIABLE" ]; then
             echo "Error: Variable is undefined"
             exit 1
           fi
+          # Split the variable (if needed)
           split_result=$(echo "$YOUR_VARIABLE" | cut -d' ' -f1)
           echo "Split result: $split_result"
       
@@ -31,7 +43,7 @@ jobs:
           github_user_name: gyan007
           outputs: dist/snake.svg
 
-      # Create a folder for the output
+      # Prepare output folder
       - name: Prepare output folder
         run: mkdir -p dist
 
@@ -46,4 +58,4 @@ jobs:
           target_branch: output
           build_dir: dist
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
